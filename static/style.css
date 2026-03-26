@@ -1,0 +1,315 @@
+/* ══════════════════════════════════════════
+   SY TRADERS — Dark‑Theme Dashboard CSS
+   ══════════════════════════════════════════ */
+
+/* ── Variables ── */
+:root {
+    --bg-body:      #0f0f1a;
+    --bg-sidebar:   #141428;
+    --bg-card:      #1a1a34;
+    --bg-input:     #22223a;
+    --border:       #2c2c50;
+    --purple:       #6c63ff;
+    --pink:         #ff6584;
+    --teal:         #00c9a7;
+    --gold:         #ffc107;
+    --text:         #e2e2f0;
+    --text-muted:   #8888aa;
+    --sidebar-w:    250px;
+}
+
+/* ── Reset / Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-body);
+    color: var(--text);
+    min-height: 100vh;
+}
+
+a { color: var(--purple); }
+a:hover { color: #8b83ff; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-body); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ══════════════ SIDEBAR ══════════════ */
+.sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: transform .3s;
+}
+
+.sidebar-brand {
+    padding: 24px 20px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: .5px;
+}
+.sidebar-brand i { color: var(--purple); margin-right: 8px; }
+
+.sidebar-nav {
+    flex: 1;
+    padding: 16px 0;
+    overflow-y: auto;
+}
+.sidebar-nav a {
+    display: block;
+    padding: 12px 24px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: .95rem;
+    transition: .2s;
+    border-left: 3px solid transparent;
+}
+.sidebar-nav a:hover,
+.sidebar-nav a.active {
+    color: #fff;
+    background: rgba(108,99,255,.1);
+    border-left-color: var(--purple);
+}
+.sidebar-nav a i { width: 22px; margin-right: 10px; text-align: center; }
+
+.sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+}
+.sidebar-user {
+    font-size: .85rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.sidebar-user i { margin-right: 6px; }
+
+.btn-logout {
+    display: inline-block;
+    padding: 6px 16px;
+    font-size: .85rem;
+    color: var(--pink);
+    border: 1px solid var(--pink);
+    border-radius: 6px;
+    text-decoration: none;
+    transition: .2s;
+}
+.btn-logout:hover { background: var(--pink); color: #fff; }
+
+/* ── Sidebar Toggle (mobile) ── */
+.sidebar-toggle {
+    position: fixed;
+    top: 14px; left: 14px;
+    z-index: 1100;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: #fff;
+    font-size: 1.2rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+@media (max-width: 767.98px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar-open .sidebar { transform: translateX(0); }
+    .main-content { margin-left: 0 !important; }
+}
+
+/* ══════════════ MAIN CONTENT ══════════════ */
+.main-content {
+    margin-left: var(--sidebar-w);
+    padding: 30px;
+    min-height: 100vh;
+}
+
+.page-title {
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #fff;
+}
+
+/* ══════════════ AUTH PAGES (no sidebar) ══════════════ */
+.auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.auth-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 36px;
+    width: 100%;
+    max-width: 440px;
+}
+.auth-header { text-align: center; margin-bottom: 28px; }
+.auth-header h2 { margin: 10px 0 4px; color: #fff; }
+.auth-header p  { color: var(--text-muted); font-size: .9rem; }
+.auth-logo { font-size: 2.4rem; color: var(--purple); }
+
+/* ══════════════ STAT CARDS ══════════════ */
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform .2s;
+}
+.stat-card:hover { transform: translateY(-3px); }
+
+.stat-card > i {
+    font-size: 1.8rem;
+    width: 52px; height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+.card-purple > i { background: rgba(108,99,255,.15); color: var(--purple); }
+.card-pink   > i { background: rgba(255,101,132,.15); color: var(--pink); }
+.card-teal   > i { background: rgba(0,201,167,.15);   color: var(--teal); }
+.card-gold   > i { background: rgba(255,193,7,.15);   color: var(--gold); }
+
+.stat-info { display: flex; flex-direction: column; }
+.stat-val  { font-size: 1.5rem; font-weight: 700; color: #fff; }
+.stat-label{ font-size: .82rem; color: var(--text-muted); }
+
+/* ══════════════ CHART BOX ══════════════ */
+.chart-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+}
+.chart-box h6 { color: #fff; margin-bottom: 14px; }
+
+/* ══════════════ SECTION BLOCKS ══════════════ */
+.section-block {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+.section-header h5 { margin: 0; color: #fff; }
+.section-header h5 i { margin-right: 8px; color: var(--purple); }
+
+/* ══════════════ TABLES ══════════════ */
+.table {
+    color: var(--text);
+    margin-bottom: 0;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text);
+}
+.table thead th {
+    background: rgba(108,99,255,.08);
+    color: #fff;
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 14px;
+}
+.table tbody td {
+    border-bottom: 1px solid var(--border);
+    padding: 11px 14px;
+    font-size: .9rem;
+    vertical-align: middle;
+}
+.table tbody tr:hover { background: rgba(108,99,255,.05); }
+
+.action-btns { white-space: nowrap; }
+.btn-xs {
+    padding: 4px 10px;
+    font-size: .78rem;
+    border-radius: 6px;
+}
+
+/* ══════════════ FORMS / INPUTS ══════════════ */
+.form-control, .form-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.form-control:focus, .form-select:focus {
+    background: var(--bg-input);
+    border-color: var(--purple);
+    color: var(--text);
+    box-shadow: 0 0 0 .2rem rgba(108,99,255,.25);
+}
+.form-control::placeholder { color: var(--text-muted); }
+
+.input-group-text {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.form-label { font-size: .85rem; color: var(--text-muted); margin-bottom: 4px; }
+
+/* ══════════════ MODALS ══════════════ */
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+.modal-header { border-bottom: 1px solid var(--border); }
+.modal-footer { border-top: 1px solid var(--border); }
+.modal-title  { color: #fff; }
+
+/* ══════════════ BUTTONS ══════════════ */
+.btn-primary {
+    background: var(--purple);
+    border-color: var(--purple);
+}
+.btn-primary:hover {
+    background: #5b52e0;
+    border-color: #5b52e0;
+}
+.btn-warning { color: #000; }
+.btn-secondary {
+    background: var(--bg-input);
+    border-color: var(--border);
+    color: var(--text);
+}
+.btn-secondary:hover { background: var(--border); color: #fff; }
+
+/* ══════════════ BADGES ══════════════ */
+.badge { font-weight: 500; font-size: .78rem; }
+
+/* ══════════════ ALERTS ══════════════ */
+.flash-container { margin-bottom: 20px; }
+
+/* ══════════════ RESPONSIVE ══════════════ */
+@media (max-width: 991.98px) {
+    .main-content { padding: 20px 16px; }
+}
+
+@media (max-width: 767.98px) {
+    .stat-val { font-size: 1.2rem; }
+    .auth-card { padding: 28px 22px; }
+}
