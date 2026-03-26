@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — SY TRADERS{% endblock %}
+
+{% block content %}
+<h3 class="page-title">Dashboard</h3>
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-purple">
+            <i class="fas fa-box"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_products }}</span>
+                <span class="stat-label">Products</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-pink">
+            <i class="fas fa-cubes"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_stock }}</span>
+                <span class="stat-label">Total Stock</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-teal">
+            <i class="fas fa-shopping-cart"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_sales }}</span>
+                <span class="stat-label">Sales</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-gold">
+            <i class="fas fa-dollar-sign"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ "%.2f"|format(stats.total_revenue) }}</span>
+                <span class="stat-label">Revenue</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Charts ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="chart-box">
+            <h6>Products by Category</h6>
+            <canvas id="catChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-box">
+            <h6>Sales Revenue (Last 7 days)</h6>
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="chart-box">
+            <h6>Top Selling Products</h6>
+            <canvas id="topChart" style="max-height:260px"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ── Products Section ── -->
+<div id="products" class="section-block">
+    <div class="section-header">
+        <h5><i class="fas fa-box"></i> My Products</h5>
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                data-bs-target="#addProductModal">
+            <i class="fas fa-plus"></i> Add Product
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Name</th><th>Brand</th><th>Category</th>
+                    <th>Size</th><th>Color</th><th>Price</th><th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in products %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.brand }}</td>
+                    <td>{{ p.category }}</td>
+                    <td>{{ p.size }}</td>
+                    <td>{{ p.color }}</td>
+                    <td>{{ "%.2f"|format(p.price) }}</td>
+                    <td>{{ p.stock }}</td>
+                    <td class="action-btns">
+                        <button class="btn btn-xs btn-warning edit-btn"
+                            data-id="{{ p.id }}"
+                            data-name="{{ p.name }}"
+                            data-brand="{{ p.brand }}"
+                            data-category="{{ p.category }}"
+                            data-size="{{ p.size }}"
+                            data-color="{{ p.color }}"
+                            data-price="{{ p.price }}"
+                            data-stock="{{ p.stock }}"
+                            data-description="{{ p.description }}"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editProductModal">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <a href="{{ url_for('delete_product', pid=p.id) }}"
+                           class="btn btn-xs btn-danger"
+                           onclick="return confirm('Delete this product?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="9" class="text-center text-muted">No products yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Sales Section ── -->
+<div id="sales" class="section-block">
+    <div class="section-header">
+        <h5><i class="fas fa-shopping-cart"></i> My Sales</h5>
+        {% if products|length > 0 %}
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                data-bs-target="#addSaleModal">
+            <i class="fas fa-plus"></i> Record Sale
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>#</th><th>Product</th><th>Customer</th>
+                    <th>Qty</th><th>Total</th><th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for s in sales %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.product_name }}</td>
+                    <td>{{ s.customer_name }}</td>
+                    <td>{{ s.quantity }}</td>
+                    <td>{{ "%.2f"|format(s.total_price) }}</td>
+                    <td>{{ s.sale_date[:10] if s.sale_date else '' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="6" class="text-center text-muted">No sales yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('add_product') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Brand *</label>
+                    <input type="text" name="brand" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Category *</label>
+                    <select name="category" class="form-select" required>
+                        <option value="">Select</option>
+                        <option>Boys</option>
+                        <option>Girls</option>
+                        <option>Unisex</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Size *</label>
+                    <input type="text" name="size" class="form-control"
+                           placeholder="e.g. UK 10" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Color *</label>
+                    <input type="text" name="color" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Price *</label>
+                    <input type="number" name="price" class="form-control"
+                           step="0.01" min="0.01" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stock *</label>
+                    <input type="number" name="stock" class="form-control"
+                           min="0" value="0" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Add Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" id="editForm" action="">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Product</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <label class="form-label">Name *</label>
+                    <input type="text" name="name" id="e-name" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Brand *</label>
+                    <input type="text" name="brand" id="e-brand" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Category *</label>
+                    <select name="category" id="e-category" class="form-select" required>
+                        <option value="">Select</option>
+                        <option>Boys</option>
+                        <option>Girls</option>
+                        <option>Unisex</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Size *</label>
+                    <input type="text" name="size" id="e-size" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Color *</label>
+                    <input type="text" name="color" id="e-color" class="form-control" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Price *</label>
+                    <input type="number" name="price" id="e-price" class="form-control"
+                           step="0.01" min="0.01" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Stock *</label>
+                    <input type="number" name="stock" id="e-stock" class="form-control"
+                           min="0" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="e-desc" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-warning" type="submit">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add Sale Modal -->
+<div class="modal fade" id="addSaleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('add_sale') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Record Sale</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Product *</label>
+                <select name="product_id" class="form-select" required>
+                    <option value="">Select product</option>
+                    {% for p in products %}
+                    <option value="{{ p.id }}">{{ p.name }} (Stock: {{ p.stock }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Customer Name *</label>
+                <input type="text" name="customer_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Quantity *</label>
+                <input type="number" name="quantity" class="form-control"
+                       min="1" value="1" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" type="submit">Record Sale</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ── Populate Edit Modal ── */
+document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.getElementById('editForm').action =
+            '/product/edit/' + this.dataset.id;
+        document.getElementById('e-name').value     = this.dataset.name;
+        document.getElementById('e-brand').value    = this.dataset.brand;
+        document.getElementById('e-category').value = this.dataset.category;
+        document.getElementById('e-size').value     = this.dataset.size;
+        document.getElementById('e-color').value    = this.dataset.color;
+        document.getElementById('e-price').value    = this.dataset.price;
+        document.getElementById('e-stock').value    = this.dataset.stock;
+        document.getElementById('e-desc').value     = this.dataset.description;
+    });
+});
+
+/* ── Chart colours ── */
+const COLORS = ['#6c63ff','#ff6584','#00c9a7','#ffc107','#17a2b8','#e94560'];
+const gridColor = '#2a2a4a';
+const tickColor = '#b0b0c0';
+
+/* Category Doughnut */
+fetch('/api/chart/categories').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('catChart'),{
+        type:'doughnut',
+        data:{labels:d.labels,datasets:[{data:d.values,backgroundColor:COLORS}]},
+        options:{responsive:true,plugins:{legend:{labels:{color:'#fff'}}}}
+    });
+});
+
+/* Sales Line Chart */
+fetch('/api/chart/sales').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('salesChart'),{
+        type:'line',
+        data:{labels:d.labels,datasets:[{
+            label:'Revenue',data:d.values,
+            borderColor:'#6c63ff',backgroundColor:'rgba(108,99,255,.15)',
+            fill:true,tension:.4
+        }]},
+        options:{responsive:true,
+            scales:{
+                x:{ticks:{color:tickColor},grid:{color:gridColor}},
+                y:{ticks:{color:tickColor},grid:{color:gridColor}}
+            },
+            plugins:{legend:{labels:{color:'#fff'}}}
+        }
+    });
+});
+
+/* Top Products Bar */
+fetch('/api/chart/top_products').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('topChart'),{
+        type:'bar',
+        data:{labels:d.labels,datasets:[{
+            label:'Units Sold',data:d.values,backgroundColor:'#6c63ff'
+        }]},
+        options:{indexAxis:'y',responsive:true,
+            scales:{
+                x:{ticks:{color:tickColor},grid:{color:gridColor}},
+                y:{ticks:{color:tickColor},grid:{color:gridColor}}
+            },
+            plugins:{legend:{labels:{color:'#fff'}}}
+        }
+    });
+});
+</script>
+{% endblock %}

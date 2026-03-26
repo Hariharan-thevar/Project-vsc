@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — SY TRADERS{% endblock %}
+
+{% block content %}
+<h3 class="page-title">Admin Dashboard</h3>
+
+<!-- ── Stat Cards ── -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-purple">
+            <i class="fas fa-users"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_users }}</span>
+                <span class="stat-label">Users</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-pink">
+            <i class="fas fa-box"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_products }}</span>
+                <span class="stat-label">Products</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-teal">
+            <i class="fas fa-shopping-cart"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ stats.total_sales }}</span>
+                <span class="stat-label">Sales</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="stat-card card-gold">
+            <i class="fas fa-dollar-sign"></i>
+            <div class="stat-info">
+                <span class="stat-val">{{ "%.2f"|format(stats.total_revenue) }}</span>
+                <span class="stat-label">Revenue</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Charts ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="chart-box"><h6>Products by Category</h6>
+            <canvas id="catChart"></canvas></div>
+    </div>
+    <div class="col-md-6">
+        <div class="chart-box"><h6>Sales Revenue (Last 7 days)</h6>
+            <canvas id="salesChart"></canvas></div>
+    </div>
+</div>
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="chart-box"><h6>Top Selling Products</h6>
+            <canvas id="topChart" style="max-height:260px"></canvas></div>
+    </div>
+</div>
+
+<!-- ── Users ── -->
+<div id="users" class="section-block">
+    <div class="section-header"><h5><i class="fas fa-users"></i> All Users</h5></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="badge bg-{{ 'danger' if u.role=='admin' else 'primary' }}">{{ u.role }}</span></td>
+                    <td>{{ u.created_at[:10] if u.created_at else '' }}</td>
+                    <td>
+                        {% if u.role != 'admin' %}
+                        <a href="{{ url_for('delete_user', uid=u.id) }}"
+                           class="btn btn-xs btn-danger"
+                           onclick="return confirm('Delete user {{ u.name }}?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Products ── -->
+<div id="products" class="section-block">
+    <div class="section-header"><h5><i class="fas fa-box"></i> All Products</h5></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr><th>#</th><th>Name</th><th>Brand</th><th>Category</th>
+                    <th>Size</th><th>Color</th><th>Price</th><th>Stock</th><th>Seller</th></tr>
+            </thead>
+            <tbody>
+            {% for p in products %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.brand }}</td>
+                    <td>{{ p.category }}</td>
+                    <td>{{ p.size }}</td>
+                    <td>{{ p.color }}</td>
+                    <td>{{ "%.2f"|format(p.price) }}</td>
+                    <td>{{ p.stock }}</td>
+                    <td>{{ p.seller_name }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="9" class="text-center text-muted">No products.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Sales ── -->
+<div id="sales" class="section-block">
+    <div class="section-header"><h5><i class="fas fa-shopping-cart"></i> All Sales</h5></div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr><th>#</th><th>Product</th><th>Customer</th><th>Qty</th>
+                    <th>Total</th><th>Seller</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+            {% for s in sales %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ s.product_name }}</td>
+                    <td>{{ s.customer_name }}</td>
+                    <td>{{ s.quantity }}</td>
+                    <td>{{ "%.2f"|format(s.total_price) }}</td>
+                    <td>{{ s.seller_name }}</td>
+                    <td>{{ s.sale_date[:10] if s.sale_date else '' }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" class="text-center text-muted">No sales.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLORS = ['#6c63ff','#ff6584','#00c9a7','#ffc107','#17a2b8','#e94560'];
+const gridColor = '#2a2a4a', tickColor = '#b0b0c0';
+
+fetch('/api/chart/categories').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('catChart'),{
+        type:'doughnut',
+        data:{labels:d.labels,datasets:[{data:d.values,backgroundColor:COLORS}]},
+        options:{responsive:true,plugins:{legend:{labels:{color:'#fff'}}}}
+    });
+});
+
+fetch('/api/chart/sales').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('salesChart'),{
+        type:'line',
+        data:{labels:d.labels,datasets:[{
+            label:'Revenue',data:d.values,
+            borderColor:'#6c63ff',backgroundColor:'rgba(108,99,255,.15)',
+            fill:true,tension:.4
+        }]},
+        options:{responsive:true,
+            scales:{
+                x:{ticks:{color:tickColor},grid:{color:gridColor}},
+                y:{ticks:{color:tickColor},grid:{color:gridColor}}
+            },
+            plugins:{legend:{labels:{color:'#fff'}}}
+        }
+    });
+});
+
+fetch('/api/chart/top_products').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('topChart'),{
+        type:'bar',
+        data:{labels:d.labels,datasets:[{
+            label:'Units Sold',data:d.values,backgroundColor:'#6c63ff'
+        }]},
+        options:{indexAxis:'y',responsive:true,
+            scales:{
+                x:{ticks:{color:tickColor},grid:{color:gridColor}},
+                y:{ticks:{color:tickColor},grid:{color:gridColor}}
+            },
+            plugins:{legend:{labels:{color:'#fff'}}}
+        }
+    });
+});
+</script>
+{% endblock %}
